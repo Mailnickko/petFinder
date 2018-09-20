@@ -13,17 +13,84 @@ const petfinder = pf({
 });
 
 class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      location: "Seattle, WA",
+      animal: "",
+      breed: "",
+      breeds: [],
+      handleAnimalChange: this.handleAnimalChange,
+      handleBreedChange: this.handleBreedChange,
+      handleLocationChange: this.handleLocationChange,
+      getBreeds: this.getBreeds
+    };
+  }
+
+  getBreeds() {
+    if (this.state.animal) {
+      petfinder.breed.list({ animal: this.state.animal }).then(data => {
+        const petfinder = data.petfinder;
+        if (
+          petfinder &&
+          petfinder.breeds &&
+          Array.isArray(petfinder.breeds.breed)
+        ) {
+          this.setState({
+            breeds: petfinder.breeds.breed
+          });
+        } else {
+          this.setState({ breeds: [] });
+        }
+      });
+    } else {
+      this.setState({ breeds: [] });
+    }
+  }
+
+  handleLocationChange = e => {
+    this.setState({
+      location: e.target.value
+    });
+  };
+
+  handleAnimalChange = e => {
+    this.setState(
+      {
+        animal: e.target.value,
+        breed: ""
+      },
+      this.getBreeds
+    );
+  };
+
+  handleBreedChange = e => {
+    this.setState({
+      breed: e.target.value
+    });
+  };
+
   render() {
     return (
       <div>
         <header>
           <Link to="/">Adopt Me!</Link>
         </header>
-        <Router>
-          <Results path="/" />
-          <Details path="/details/:id" />
-          <SearchParams path="/search-params" />
-        </Router>
+        {/* 
+        This provider is being supplied by context API 
+
+        Now if a consumer is instantiated in any of these children components, they will have access to the current state. 
+
+        Providers can be nested to create multiple contexts
+        */}
+        <Provider value={this.state}>
+          <Router>
+            <Results path="/" />
+            <Details path="/details/:id" />
+            <SearchParams path="/search-params" />
+          </Router>
+        </Provider>
       </div>
     );
   }
