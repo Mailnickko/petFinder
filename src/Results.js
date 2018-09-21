@@ -1,5 +1,6 @@
 import React from "react";
 import Pet from "./Pet";
+import { Consumer } from "./SearchContext";
 import pf from "petfinder-client";
 
 import SearchBox from "./SearchBox";
@@ -16,11 +17,18 @@ class Results extends React.Component {
       pets: []
     };
   }
+
   componentDidMount() {
+    this.search();
+  }
+
+  search = () => {
     petfinder.pet
       .find({
         output: "full",
-        location: "Los Angeles, CA"
+        location: this.props.searchParams.location,
+        animal: this.props.searchParams.animal,
+        breed: this.props.searchParams.breed
       })
       .then(data => {
         let pets;
@@ -38,12 +46,12 @@ class Results extends React.Component {
           pets
         });
       });
-  }
+  };
 
   render() {
     return (
       <div className="search">
-        <SearchBox />
+        <SearchBox search={this.search} />
         {this.state.pets.map(pet => {
           const { animal, name, id } = pet;
           let { breed: breeds } = pet.breeds;
@@ -64,5 +72,15 @@ class Results extends React.Component {
     );
   }
 }
+/*
+  Context is only available within render method
 
-export default Results;
+  In order to use context within lifecycle methods, 
+*/
+export default function ResultsWithContext(props) {
+  return (
+    <Consumer>
+      {context => <Results {...props} searchParams={context} />}
+    </Consumer>
+  );
+}

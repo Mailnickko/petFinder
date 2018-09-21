@@ -76,6 +76,11 @@ class App extends React.Component {
       <div>
         <header>
           <Link to="/">Adopt Me!</Link>
+          <Link to="/search-params">
+            <span aria-label="search" role="img">
+              🔍
+            </span>
+          </Link>
         </header>
         {/* 
         This provider is being supplied by context API 
@@ -95,5 +100,4 @@ class App extends React.Component {
     );
   }
 }
-
 ReactDOM.render(React.createElement(App), document.getElementById("root"));
