@@ -1,9 +1,8 @@
 import React from "react";
-import Pet from "./Pet";
-import { Consumer } from "./SearchContext";
 import pf from "petfinder-client";
-
+import Pet from "./Pet";
 import SearchBox from "./SearchBox";
+import { connect } from "react-redux";
 
 const petfinder = pf({
   key: process.env.API_KEY,
@@ -13,22 +12,21 @@ const petfinder = pf({
 class Results extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
       pets: []
     };
   }
-
   componentDidMount() {
     this.search();
   }
-
   search = () => {
     petfinder.pet
       .find({
-        output: "full",
-        location: this.props.searchParams.location,
-        animal: this.props.searchParams.animal,
-        breed: this.props.searchParams.breed
+        location: this.props.location,
+        animal: this.props.animal,
+        breed: this.props.breed,
+        output: "full"
       })
       .then(data => {
         let pets;
@@ -41,30 +39,31 @@ class Results extends React.Component {
         } else {
           pets = [];
         }
-
         this.setState({
-          pets
+          pets: pets
         });
       });
   };
-
   render() {
     return (
       <div className="search">
         <SearchBox search={this.search} />
         {this.state.pets.map(pet => {
-          const { animal, name, id } = pet;
-          let { breed: breeds } = pet.breeds;
-          breeds = Array.isArray(breeds) ? breeds.join(", ") : breeds;
+          let breed;
+          if (Array.isArray(pet.breeds.breed)) {
+            breed = pet.breeds.breed.join(", ");
+          } else {
+            breed = pet.breeds.breed;
+          }
           return (
             <Pet
-              key={id}
-              animal={animal}
-              name={name}
-              breed={breeds}
+              animal={pet.animal}
+              key={pet.id}
+              name={pet.name}
+              breed={breed}
               media={pet.media}
               location={`${pet.contact.city}, ${pet.contact.state}`}
-              id={id}
+              id={pet.id}
             />
           );
         })}
@@ -72,15 +71,11 @@ class Results extends React.Component {
     );
   }
 }
-/*
-  Context is only available within render method
 
-  In order to use context within lifecycle methods, 
-*/
-export default function ResultsWithContext(props) {
-  return (
-    <Consumer>
-      {context => <Results {...props} searchParams={context} />}
-    </Consumer>
-  );
-}
+const mapStateToProps = ({ animal, breed, location }) => ({
+  animal,
+  breed,
+  location
+});
+
+export default connect(mapStateToProps)(Results);
